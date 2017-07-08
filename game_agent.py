@@ -34,8 +34,19 @@ def custom_score(game, player):
     float
         The heuristic value of the current game state to the specified player.
     """
-    # TODO: finish this function!
-    raise NotImplementedError
+    # let's begin.....
+
+    # return defaults states
+    if game.is_loser(player):
+        return float("-inf")
+    if game.is_winner(player):
+        return float("inf")
+    # let's get our and opponent moves
+    our_moves = len(game.get_legal_moves(player))
+    opp_moves = len(game.get_legal_moves(game.get_opponent(player)))
+
+    # main meat here, a future place for awesome deep learning powers....
+    return float(our_moves - (2.0 * opp_moves))
 
 
 def custom_score_2(game, player):
@@ -60,8 +71,19 @@ def custom_score_2(game, player):
     float
         The heuristic value of the current game state to the specified player.
     """
-    # TODO: finish this function!
-    raise NotImplementedError
+    # let's begin.....
+
+    # return defaults states
+    if game.is_loser(player):
+        return float("-inf")
+    if game.is_winner(player):
+        return float("inf")
+    # let's get our and opponent moves
+    our_moves = len(game.get_legal_moves(player))
+    opp_moves = len(game.get_legal_moves(game.get_opponent(player)))
+
+    # main meat here, a future place for awesome deep learning powers....
+    return float(our_moves / (opp_moves + 0.0001))
 
 
 def custom_score_3(game, player):
@@ -86,8 +108,19 @@ def custom_score_3(game, player):
     float
         The heuristic value of the current game state to the specified player.
     """
-    # TODO: finish this function!
-    raise NotImplementedError
+    # let's begin.....
+
+    # return defaults states
+    if game.is_loser(player):
+        return float("-inf")
+    if game.is_winner(player):
+        return float("inf")
+    # let's get our and opponent moves
+    our_moves = len(game.get_legal_moves(player))
+    opp_moves = len(game.get_legal_moves(game.get_opponent(player)))
+
+    # main meat here, a future place for awesome deep learning powers....
+    return float(our_moves - opp_moves)
 
 
 class IsolationPlayer:
@@ -212,8 +245,73 @@ class MinimaxPlayer(IsolationPlayer):
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
 
-        # TODO: finish this function!
-        raise NotImplementedError
+        # let's begin...
+
+        # get the legal moves
+        legal_moves = game.get_legal_moves()
+        # Initialize the default best move
+        best_move = (-1,-1)
+        # Initialize the minmax score variable
+        minmax_score = float("-inf")
+
+        # loop through legal moves to determine the best moves
+        for move in legal_moves:
+            new_score = self.min_value(game.forecast_move(move), depth-1)
+            # update minmax_score if the current move is better
+            if new_score > minmax_score:
+                minmax_score = new_score
+                best_move = move
+        # return the best move
+        return best_move
+    # defined max_value function as described in AIMA book
+    def max_value(self, game, depth):
+
+        # check for timeout
+        if self.time_left() < self.TIMER_THRESHOLD:
+            raise SearchTimeout()
+        # get the legal moves
+        legal_moves = game.get_legal_moves()
+        # terminal tests
+        if not legal_moves:
+            return game.utility(self)
+        # if terminal state is depth limit then return current utility score
+        if depth == 0:
+            return self.score(game, self)
+        # get the min_score variable
+        max_score = float("-inf")
+        # loop through the legal moves to determine min score
+        for move in legal_moves:
+            value = self.min_value(game.forecast_move(move), depth-1)
+            # update best score
+            if value > max_score:
+                max_score = value
+
+        return max_score
+
+    # defined min_value function as described in AIMA book
+    def min_value(self, game, depth):
+
+        # check for timeout
+        if self.time_left() < self.TIMER_THRESHOLD:
+            raise SearchTimeout()
+        # get the legal moves
+        legal_moves = game.get_legal_moves()
+        # terminal tests
+        if not legal_moves:
+            return game.utility(self)
+        # if terminal state is depth limit then return current utility score
+        if depth == 0:
+            return self.score(game, self)
+        # get the min_score variable
+        min_score = float("inf")
+        # loop through the legal moves to determine min score
+        for move in legal_moves:
+            value = self.max_value(game.forecast_move(move), depth-1)
+            # update best score
+            if value < min_score:
+                min_score = value
+        return min_score
+
 
 
 class AlphaBetaPlayer(IsolationPlayer):
@@ -254,8 +352,30 @@ class AlphaBetaPlayer(IsolationPlayer):
         """
         self.time_left = time_left
 
-        # TODO: finish this function!
-        raise NotImplementedError
+        # let's begin....
+
+        # get the legal moves
+        legal_moves = game.get_legal_moves()
+
+        # check if there are legal moves
+        if not legal_moves:
+            return (-1,-1)
+
+        # set the best move with a random legal move
+        best_move = random.choice(legal_moves)
+
+        # let's start with depth = 1
+        depth = 1
+        # Let's use iterative deepening in given time
+        try:
+            while True:
+                best_move = self.alphabeta(game, depth)
+                depth += 1
+
+        except SearchTimeout:
+            pass
+
+        return best_move
 
     def alphabeta(self, game, depth, alpha=float("-inf"), beta=float("inf")):
         """Implement depth-limited minimax search with alpha-beta pruning as
@@ -305,5 +425,89 @@ class AlphaBetaPlayer(IsolationPlayer):
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
 
-        # TODO: finish this function!
-        raise NotImplementedError
+        # let's begin...
+        # get the legal moves
+        legal_moves = game.get_legal_moves()
+        # Initialize default alphabeta_value
+        alphabeta_score = float("-inf")
+        best_move = (-1,-1)
+        # terminal test
+        if not legal_moves:
+            return best_move
+
+        # terminal test for depth: return the first move
+        if depth == 0:
+            return  legal_moves[0]
+
+        new_score=0
+        for move in legal_moves:
+            # get minimium score for each forecasted move
+            new_score = self.min_value(game.forecast_move(move), depth-1, alpha, beta)
+            # assign best move is current if alphabeta_value is greater then return new move
+            if new_score > alphabeta_score:
+                alphabeta_score = new_score
+                best_move = move
+            # if current alphabeta_score is greater then beta then return default move
+            if alphabeta_score >= beta:
+                return best_move
+            # choose alpha between currebnt and the max of new score
+            alpha = max(alpha, new_score)
+        return best_move
+
+    # defined max_value function as described in AIMA book
+    def max_value(self, game, depth, alpha, beta):
+        # check for timeout
+        if self.time_left() < self.TIMER_THRESHOLD:
+            raise SearchTimeout()
+        # get the legal moves
+        legal_moves = game.get_legal_moves()
+        # terminal test no legal move left
+        if not legal_moves:
+            return game.utility(self)
+        # check for terminal state
+        if depth == 0:
+            return self.score(game,self)
+        # if no timeout and no terminal then let's move forward
+        # Initialize max_score variable
+        max_score = float("-inf")
+        # loop through all the moves in game get_legal_moves
+        for move in legal_moves:
+            # update max_score from local min_value method
+            max_score = max(max_score, self.min_value(game.forecast_move(move), depth-1, alpha, beta))
+            # check if max_score is still greater then current beta score
+            if max_score >= beta:
+                return max_score
+            # otherwise update alpha with max_score
+            alpha = max(alpha, max_score)
+        # and return max_score
+        return max_score
+
+    # defined min_value function as described in AIMA book
+    def min_value(self, game, depth, alpha, beta):
+
+        # check for timeout
+        if self.time_left() < self.TIMER_THRESHOLD:
+            raise SearchTimeout()
+        # get the legal moves
+        legal_moves = game.get_legal_moves()
+        # terminal test no legal move left
+        if not legal_moves:
+            return game.utility(self)
+        # check for terminal state
+        if depth == 0:
+            return self.score(game, self)
+
+        # if no timeout and no terminal then let's move forward
+        # Initialize min_score variable
+        min_score = float("inf")
+        # loop through all the moves in game get_legal_moves
+        for move in legal_moves:
+            # update min_score local max_value method
+            min_score = min(min_score, self.max_value(game.forecast_move(move), depth-1, alpha, beta))
+            # check if min_score is still less then current alpha score
+            if min_score <= alpha:
+                return min_score
+            # otherwise update beta score with min_score
+            beta = min(beta, min_score)
+        # and return min_score
+        return min_score
